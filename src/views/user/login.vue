@@ -15,7 +15,10 @@
         <p>想买啥，就买啥，就是买买买</p>
       </div>
 
-      <van-form @submit="onSubmit" class="login-form">
+      <van-form
+        @submit="onSubmit"
+        class="login-form"
+      >
         <!-- 手机号 -->
         <van-field
           v-model="formData.phone"
@@ -39,8 +42,15 @@
           :rules="[{ required: true, message: '请输入图形验证码' }]"
         >
           <template #button>
-            <div v-if="graphicCodeUrl!=''" class="graphic-code" @click="refreshGraphicCode">
-              <img :src="'data:image/png;base64,' + graphicCodeUrl" alt="图形验证码">
+            <div
+              v-if="graphicCodeUrl!=''"
+              class="graphic-code"
+              @click="refreshGraphicCode"
+            >
+              <img
+                :src="'data:image/png;base64,' + graphicCodeUrl"
+                alt="图形验证码"
+              >
             </div>
           </template>
         </van-field>
@@ -92,123 +102,127 @@
 </template>
 
 <script>
-import { getGraphicVerification, sendSmsCode, login } from '@/utils/api/user-api'
+import {
+  getGraphicVerification,
+  sendSmsCode,
+  login,
+} from "@/utils/api/user-api";
 
 export default {
-  name: 'LoginIndex',
-  data () {
+  name: "LoginIndex",
+  data() {
     return {
       formData: {
-        phone: '',
-        graphicCode: '',
-        smsCode: '',
-        uuid: ''
+        phone: "",
+        graphicCode: "",
+        smsCode: "",
+        uuid: "",
       },
       placeholders: {
-        phone: '请输入手机号',
-        graphicCode: '请输入图形验证码',
-        smsCode: '请输入验证码'
+        phone: "请输入手机号",
+        graphicCode: "请输入图形验证码",
+        smsCode: "请输入验证码",
       },
       // 使用默认的Base64图片作为初始验证码
-      graphicCodeUrl: '',
+      graphicCodeUrl: "",
       timer: null,
       countdown: 60,
-      loading: false
-    }
+      loading: false,
+    };
   },
-  created () {
-    this.refreshGraphicCode()
+  created() {
+    this.refreshGraphicCode();
   },
-  beforeDestroy () {
+  beforeDestroy() {
     if (this.timer) {
-      clearInterval(this.timer)
+      clearInterval(this.timer);
     }
   },
   methods: {
     // 返回上一页
-    onClickLeft () {
-      this.$router.back()
+    onClickLeft() {
+      this.$router.back();
     },
 
     // 刷新图形验证码
-    async refreshGraphicCode () {
+    async refreshGraphicCode() {
       try {
-        const res = await getGraphicVerification()
+        const res = await getGraphicVerification();
         if (res.code === 200) {
           // 直接使用返回的Base64字符串
-          this.graphicCodeUrl = res.data.image
-          this.formData.uuid = res.data.uuid
-          this.formData.graphicCode = ''
+          this.graphicCodeUrl = res.data.image;
+          this.formData.uuid = res.data.uuid;
+          this.formData.graphicCode = "";
         }
       } catch (error) {
-        this.$toast('获取图形验证码失败')
+        this.$toast("获取图形验证码失败");
       }
     },
 
     // 发送短信验证码
-    async sendSms () {
+    async sendSms() {
       if (!this.formData.phone || !this.formData.graphicCode) {
-        return
+        return;
       }
 
       try {
         const res = await sendSmsCode({
           phone: this.formData.phone,
           graphicCode: this.formData.graphicCode,
-          uuid: this.formData.uuid
-        })
+          uuid: this.formData.uuid,
+        });
 
         if (res.code === 200) {
-          this.$notify({ type: 'success', message: '验证码发送成功' })
+          this.$notify({ type: "success", message: "验证码发送成功" });
           // 开始倒计时
-          this.startCountdown()
+          this.startCountdown();
         } else {
-          this.$toast(res.msg || '发送失败')
+          this.$toast(res.msg || "发送失败");
         }
       } catch (error) {
-        this.$toast('发送失败')
+        this.$toast("发送失败");
       }
     },
 
     // 开始倒计时
-    startCountdown () {
-      this.countdown = 60
+    startCountdown() {
+      this.countdown = 60;
       this.timer = setInterval(() => {
         if (this.countdown > 0) {
-          this.countdown--
+          this.countdown--;
         } else {
-          clearInterval(this.timer)
-          this.timer = null
+          clearInterval(this.timer);
+          this.timer = null;
         }
-      }, 1000)
+      }, 1000);
     },
 
     // 提交表单
-    async onSubmit () {
-      this.loading = true
+    async onSubmit() {
+      this.loading = true;
       try {
-        const res = await login(this.formData)
+        const res = await login(this.formData);
         if (res.code === 200) {
-          this.$notify({ type: 'success', message: '登录成功' })
-          this.$store.commit('userStore/updUserInfor', res.data)
+          this.$notify({ type: "success", message: "登录成功" });
+          this.$store.commit("userStore/updUserInfor", res.data);
           // TODO: 存储token和用户信息
-          this.$router.push('/main')
+          this.$router.push("/main");
         } else {
-          this.$toast(res.msg || '登录失败')
+          this.$toast(res.msg || "登录失败");
         }
       } catch (error) {
-        this.$toast('登录失败')
+        this.$toast("登录失败");
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
 
     // 处理输入框获取焦点
-    handleFocus (field) {
-      this.placeholders[field] = ''
-    }
-  }
-}
+    handleFocus(field) {
+      this.placeholders[field] = "";
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
@@ -226,7 +240,7 @@ export default {
 
     .app-title {
       text-align: center;
-      margin: 40px 0 60px;  // 增加底部间距
+      margin: 40px 0 60px; // 增加底部间距
 
       h2 {
         font-size: 32px;
@@ -246,15 +260,15 @@ export default {
       flex: 1;
       display: flex;
       flex-direction: column;
-      margin: -40px 0;  // 减小偏移量
+      margin: -40px 0; // 减小偏移量
 
       :deep(.van-cell) {
-        margin-bottom: 20px;  // 增加输入框之间的间距
+        margin-bottom: 20px; // 增加输入框之间的间距
         padding: 10px 16px;
       }
 
       :deep(.van-field__label) {
-        width: 90px;  // 固定标签宽度
+        width: 90px; // 固定标签宽度
         color: #333;
       }
     }
@@ -264,18 +278,18 @@ export default {
     height: 32px;
     width: 100px;
     margin-left: 10px;
-    border-radius: 4px;  // 添加圆角
-    overflow: hidden;  // 确保图片不超出圆角范围
+    border-radius: 4px; // 添加圆角
+    overflow: hidden; // 确保图片不超出圆角范围
     img {
       height: 100%;
       width: 100%;
       object-fit: cover;
-      vertical-align: middle;  // 修复图片底部可能的间隙
+      vertical-align: middle; // 修复图片底部可能的间隙
     }
   }
 
   .submit-btn {
-    margin-top: 32px;  // 增加按钮上方间距
+    margin-top: 32px; // 增加按钮上方间距
     padding: 0 12px;
 
     .van-button {
